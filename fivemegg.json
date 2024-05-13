@@ -10,7 +10,7 @@
     "description": "No free rides",
     "features": null,
     "docker_images": {
-        "ghcr.io\/crunchyward\/pterofivem": "ghcr.io\/crunchyward\/pterofivem"
+        "ghcr.io\/parkervcp\/yolks:debian": "ghcr.io\/parkervcp\/yolks:debian"
     },
     "file_denylist": [],
     "startup": ".\/start.sh",
