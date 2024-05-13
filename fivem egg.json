@@ -10,7 +10,7 @@
     "description": "No free rides",
     "features": null,
     "docker_images": {
-        "ghcr.io\/crunchyward\/pterodactyl-fivem": "ghcr.io\/crunchyward\/pterodactyl-fivem"
+        "ghcr.io\/crunchyward\/pterofivem": "ghcr.io\/crunchyward\/pterofivem"
     },
     "file_denylist": [],
     "startup": ".\/start.sh",
