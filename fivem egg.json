@@ -1,0 +1,122 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2024-05-13T17:15:33-04:00",
+    "name": "FiveM Egg",
+    "author": "crunchyward",
+    "description": "No free rides",
+    "features": null,
+    "docker_images": {
+        "ghcr.io\/crunchyward\/pterodactyl-fivem": "ghcr.io\/crunchyward\/pterodactyl-fivem"
+    },
+    "file_denylist": [],
+    "startup": ".\/start.sh",
+    "config": {
+        "files": "{\r\n    \"server.cfg\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"endpoint_add_tcp\": \"endpoint_add_tcp \\\"0.0.0.0:{{server.build.default.port}}\\\"\",\r\n            \"endpoint_add_udp\": \"endpoint_add_udp \\\"0.0.0.0:{{server.build.default.port}}\\\"\",\r\n            \"sv_hostname\": \"sv_hostname \\\"{{server.build.env.SERVER_HOSTNAME}}\\\"\",\r\n            \"set sv_licenseKey\": \"set sv_licenseKey {{server.build.env.FIVEM_LICENSE}}\",\r\n            \"set steam_webApiKey\": \"set steam_webApiKey {{server.build.env.STEAM_WEBAPIKEY}}\",\r\n            \"sv_maxclients\": \"sv_maxclients {{server.build.env.MAX_PLAYERS}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"succeeded. Welcome!\"\r\n}",
+        "logs": "{}",
+        "stop": "QUIT"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# FiveM Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\n\r\ncd \/mnt\/server\r\n\r\nmkdir resources\r\necho \"updating citizenfx resource files\"\r\ngit clone https:\/\/github.com\/citizenfx\/cfx-server-data.git \/tmp\r\ncp -Rf \/tmp\/resources\/* resources\/ \r\n\r\napt update -y\r\napt install -y tar xz-utils file jq\r\n\r\nRELEASE_PAGE=$(curl -sSL https:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/)\r\nCHANGELOGS_PAGE=$(curl -sSL https:\/\/changelogs-live.fivem.net\/api\/changelog\/versions\/linux\/server)\r\n\r\nif [[ \"${FIVEM_VERSION}\" == \"recommended\" ]] || [[ -z ${FIVEM_VERSION} ]]; then\r\n  DOWNLOAD_LINK=$(echo $CHANGELOGS_PAGE | jq -r '.recommended_download')\r\nelif [[ \"${FIVEM_VERSION}\" == \"latest\" ]]; then\r\n  DOWNLOAD_LINK=$(echo $CHANGELOGS_PAGE | jq -r '.latest_download')\r\nelse\r\n  VERSION_LINK=$(echo -e \"${RELEASE_PAGE}\" | grep -Eo '\".*\/*.tar.xz\"' | grep -Eo '\".*\"' | sed 's\/\\\"\/\/g' | sed 's\/\\.\\\/\/\/1' | grep ${CFX_VERSION})\r\n  if [[ \"${VERSION_LINK}\" == \"\" ]]; then\r\n    echo -e \"defaulting to recommedned as the version requested was invalid.\"\r\n    DOWNLOAD_LINK=$(echo $CHANGELOGS_PAGE | jq -r '.recommended_download')\r\n  else\r\n    DOWNLOAD_LINK=$(echo https:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/${VERSION_LINK})\r\n  fi\r\nfi\r\n\r\n\r\nif [ ! -z \"${DOWNLOAD_URL}\" ]; then\r\n  if curl --output \/dev\/null --silent --head --fail ${DOWNLOAD_URL}; then\r\n    echo -e \"link is valid. setting download link to ${DOWNLOAD_URL}\"\r\n    DOWNLOAD_LINK=${DOWNLOAD_URL}\r\n  else\r\n    echo -e \"link is invalid closing out\"\r\n    exit 2\r\n  fi\r\nfi\r\n\r\necho -e \"Running curl -sSL ${DOWNLOAD_LINK} -o ${DOWNLOAD_LINK##*\/}\"\r\n\r\ncurl -sSL ${DOWNLOAD_LINK} -o ${DOWNLOAD_LINK##*\/}\r\necho \"Extracting fivem files\"\r\n\r\ntar -xvf ${DOWNLOAD_LINK##*\/}\r\n\r\nrm -rf ${DOWNLOAD_LINK##*\/} run.sh\r\n\r\nif [ -e server.cfg ]; then\r\n    echo \"server config file exists\"\r\nelse\r\n    echo \"Downloading default fivem config\"\r\n  curl https:\/\/raw.githubusercontent.com\/Crunchyward\/servercfg\/main\/server.cfg >>server.cfg\r\nfi\r\n\r\necho \"install complete\"",
+            "container": "ghcr.io\/parkervcp\/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "txAdmin Port",
+            "description": "The port for the txAdmin panel",
+            "env_variable": "TXADMIN_PORT",
+            "default_value": "40120",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "Auto Update",
+            "description": "set to 1 to enable. (default is 0 for false)",
+            "env_variable": "AUTO_UPDATE",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean",
+            "field_type": "text"
+        },
+        {
+            "name": "txAdmin Profile",
+            "description": "TxAdmin Server Profiles",
+            "env_variable": "TXADMIN_PROFILE",
+            "default_value": "default",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "Server Hostname",
+            "description": "The name that shows up in the server browser",
+            "env_variable": "SERVER_HOSTNAME",
+            "default_value": "Pterodactyl FiveM Server",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Steam Web Api Key",
+            "description": "Use your Steam WebApiKey or set to 'none'. Get your key at https:\/\/steamcommunity.com\/dev\/apikey\/",
+            "env_variable": "STEAM_WEBAPIKEY",
+            "default_value": "none",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "FxServer License Key",
+            "description": "Server Key (Required To Start Server)",
+            "env_variable": "FIVEM_LICENSE",
+            "default_value": "none",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:100",
+            "field_type": "text"
+        },
+        {
+            "name": "Enable \/ Disable TxAdmin",
+            "description": "Enables txadmin.\r\n\r\nset to 1 to enable. (default is 0 for false)",
+            "env_variable": "TXADMIN_ENABLE",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": false,
+            "rules": "required|boolean",
+            "field_type": "text"
+        },
+        {
+            "name": "Max Players",
+            "description": "Set the FX Server max play count",
+            "env_variable": "MAX_PLAYERS",
+            "default_value": "10",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:1,64",
+            "field_type": "text"
+        },
+        {
+            "name": "FX Server Version",
+            "description": "The fivem version that is to be installed. Invalid versions will default to recommended.\r\n\r\nAn example is `8139-e78ded5b39e8263a0a05dc777538d566a5278fc3`\r\n\r\nYou can get the latest version from here - https:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/",
+            "env_variable": "FIVEM_VERSION",
+            "default_value": "latest",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": "required|string|max:50",
+            "field_type": "text"
+        }
+    ]
+}
